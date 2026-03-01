@@ -1,0 +1,190 @@
+"""
+Call Processing API test data from Updated_Otto_API_Documentation.md.
+Base URL: https://ottoai.shunyalabs.ai
+"""
+
+# Base URL (override via OTTO_API_BASE_URL env)
+DEFAULT_BASE_URL = "https://ottoai.shunyalabs.ai"
+
+# ---------------------------------------------------------------------------
+# Staging company (real data) — used across all tests
+# ---------------------------------------------------------------------------
+STAGING_COMPANY_ID = "91ecfcb9-fc40-4792-ba47-65b273cec204"
+
+# Alias kept for backward compatibility in imports
+VALID_COMPANY_ID = STAGING_COMPANY_ID
+
+# Real audio recordings (MP3) for call processing tests
+STAGING_AUDIO_URLS = [
+    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/7f236d85-4670-41f5-805f-1e0463cbf8af/4046177579.mp3",
+    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/e481bac8-3c33-42c1-895f-708cb9510201/4045738307.mp3",
+    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/0a44255f-b89b-473d-8db3-0e42e83013bf/4044411224.mp3",
+    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/dda68a37-0957-4d95-ad24-f19e429b5dee/4046545208.mp3",
+]
+
+# Example call_id for new submissions (flexible: UUID or any string)
+SAMPLE_CALL_ID = "550e8400-e29b-41d4-a716-446655440000"
+
+# Real call_id from staging (completed, has summary/detail/transcript)
+REAL_CALL_ID = "d4ced470-3ec4-4e8b-a705-a1600611b36b"
+
+# Job ID format (UUID) - system generated; use for status/retry
+SAMPLE_JOB_ID = "550e8400-e29b-41d4-a716-446655440000"
+
+# Required for POST /api/v1/call-processing/process
+# metadata.agent.id and metadata.agent.name are REQUIRED (or legacy rep_id/rep_name)
+PROCESS_PAYLOAD_MINIMAL = {
+    "call_id": SAMPLE_CALL_ID,
+    "company_id": STAGING_COMPANY_ID,
+    "audio_url": STAGING_AUDIO_URLS[0],
+    "phone_number": "+14805551234",
+    "rep_role": "customer_rep",
+    "metadata": {
+        "agent": {
+            "id": "USR_ANTHONY_ARIZONA",
+            "name": "Anthony",
+            "email": "anthony@arizonaroofers.com",
+        }
+    },
+}
+
+PROCESS_PAYLOAD_CSR = {
+    "call_id": "550e8400-e29b-41d4-a716-446655440001",
+    "company_id": STAGING_COMPANY_ID,
+    "audio_url": STAGING_AUDIO_URLS[1],
+    "phone_number": "+14805551234",
+    "rep_role": "customer_rep",
+    "metadata": {
+        "agent": {
+            "id": "USR_ANTHONY_ARIZONA",
+            "name": "Anthony",
+            "email": "anthony@arizonaroofers.com",
+        }
+    },
+}
+
+# Invalid payloads for validation tests
+INVALID_COMPANY_ID_NOT_UUID = "acme_roofing"
+PROCESS_PAYLOAD_MISSING_AGENT = {
+    "call_id": SAMPLE_CALL_ID,
+    "company_id": STAGING_COMPANY_ID,
+    "audio_url": STAGING_AUDIO_URLS[0],
+    "phone_number": "+14805551234",
+    "metadata": {},
+}
+
+# Status response: allowed status values
+JOB_STATUS_VALUES = ("queued", "processing", "completed", "failed")
+
+# List calls query params (from doc 2.10)
+LIST_CALLS_PARAMS = {
+    "company_id": STAGING_COMPANY_ID,
+    "limit": 50,
+    "offset": 0,
+    "sort_by": "call_date",  # call_date | created_at | duration
+    "sort_order": "desc",    # asc | desc
+}
+
+# List summaries query params (from doc 2.9)
+LIST_SUMMARIES_PARAMS = {
+    "company_id": STAGING_COMPANY_ID,
+    "limit": 20,
+    "offset": 0,
+    "sort_by": "created_at",      # created_at | compliance_score
+    "sort_order": "desc",         # asc | desc
+    "min_compliance_score": 0.0,
+    "max_compliance_score": 1.0,
+}
+
+# Get summary query params
+SUMMARY_INCLUDE_CHUNKS = {"include_chunks": "true"}
+
+# Get call detail query params (from doc 2.11)
+DETAIL_PARAMS = {
+    "include_transcript": "true",
+    "include_segments": "true",
+}
+
+# Phase search (2.7)
+PHASES_SEARCH_PARAMS = {
+    "company_id": STAGING_COMPANY_ID,
+    "missing_phase": "closing",
+    "limit": 50,
+    "offset": 0,
+}
+
+# Phase analytics (2.8)
+PHASES_ANALYTICS_PARAMS = {
+    "company_id": STAGING_COMPANY_ID,
+    "days": 30,
+}
+
+# ---------------------------------------------------------------------------
+# Negative / edge-case test data
+# ---------------------------------------------------------------------------
+NONEXISTENT_CALL_ID = "00000000-0000-0000-0000-000000000000"
+NONEXISTENT_JOB_ID = "00000000-0000-0000-0000-000000000000"
+NONEXISTENT_COMPANY_ID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+WRONG_API_KEY = "INVALID_KEY_12345678"
+INVALID_AUDIO_URL = "https://example.com/nonexistent_audio.mp3"
+
+# Empty body for process endpoint
+PROCESS_PAYLOAD_EMPTY = {}
+
+# Missing call_id
+PROCESS_PAYLOAD_NO_CALL_ID = {
+    "company_id": STAGING_COMPANY_ID,
+    "audio_url": STAGING_AUDIO_URLS[0],
+    "phone_number": "+14805551234",
+    "metadata": {"agent": {"id": "USR_TEST", "name": "Test"}},
+}
+
+# Missing audio_url
+PROCESS_PAYLOAD_NO_AUDIO = {
+    "call_id": "neg_test_no_audio_001",
+    "company_id": STAGING_COMPANY_ID,
+    "phone_number": "+14805551234",
+    "metadata": {"agent": {"id": "USR_TEST", "name": "Test"}},
+}
+
+# Invalid audio URL (unreachable)
+PROCESS_PAYLOAD_BAD_AUDIO = {
+    "call_id": "neg_test_bad_audio_001",
+    "company_id": STAGING_COMPANY_ID,
+    "audio_url": INVALID_AUDIO_URL,
+    "phone_number": "+14805551234",
+    "metadata": {"agent": {"id": "USR_TEST", "name": "Test"}},
+}
+
+# SQL/NoSQL injection payloads
+INJECTION_STRINGS = [
+    "'; DROP TABLE calls; --",
+    '{"$gt": ""}',
+    "<script>alert('xss')</script>",
+    "{{7*7}}",
+    "../../../etc/passwd",
+]
+
+# ---------------------------------------------------------------------------
+# SOP document (Intake Calls - user onboarding)
+# ---------------------------------------------------------------------------
+SOP_URL = "https://otto-documents-staging.s3.ap-southeast-2.amazonaws.com/user-onboarding-docs/anthony@arizonaroofers.com_Intake_Calls_(3)_(1).pdf.pdf"
+SOP_ID = "sop_4312acde8e78"
+
+
+def staging_process_payload(call_id: str, audio_url: str, phone_number: str = "+14805551234") -> dict:
+    """Build process payload for staging company + given audio. Use unique call_id per run."""
+    return {
+        "call_id": call_id,
+        "company_id": STAGING_COMPANY_ID,
+        "audio_url": audio_url,
+        "phone_number": phone_number,
+        "rep_role": "customer_rep",
+        "metadata": {
+            "agent": {
+                "id": "USR_ANTHONY_ARIZONA",
+                "name": "Anthony",
+                "email": "anthony@arizonaroofers.com",
+            }
+        },
+    }
