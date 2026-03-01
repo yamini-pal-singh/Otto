@@ -173,8 +173,34 @@ def build_call_card(call, summary, detail, idx):
     obj_data = s.get("objections", {})
     objections = obj_data.get("objections", []) if isinstance(obj_data, dict) else []
 
-    # Qualification
+    # Qualification / Customer Intelligence
     qual = s.get("qualification", {})
+    customer_name = qual.get("customer_name") or "Unknown"
+    call_type = qual.get("detected_call_type") or "N/A"
+    is_existing = qual.get("is_existing_customer")
+    qual_status = qual.get("qualification_status") or "N/A"
+    booking_status = qual.get("booking_status") or "N/A"
+    bant = qual.get("bant_scores", {})
+    overall_bant = qual.get("overall_score", 0) or 0
+    follow_up_req = qual.get("follow_up_required", False)
+    follow_up_reason = qual.get("follow_up_reason") or ""
+    decision_makers = qual.get("decision_makers", [])
+    urgency_signals = qual.get("urgency_signals", [])
+    budget_indicators = qual.get("budget_indicators", [])
+    service_requested = qual.get("service_requested") or ""
+    appt_confirmed = qual.get("appointment_confirmed", False)
+    appt_date = qual.get("appointment_date")
+    appt_type = qual.get("appointment_type") or ""
+    appt_timezone = qual.get("appointment_timezone") or ""
+    confidence = qual.get("confidence_score", 0) or 0
+    name_confidence = qual.get("customer_name_confidence", 0) or 0
+    addr_confidence = qual.get("address_confidence", 0) or 0
+    addr_struct = qual.get("service_address_structured", {})
+    addr_raw = qual.get("service_address_raw") or ""
+    call_outcome = qual.get("call_outcome_category") or ""
+
+    # Sentiment (from summary object)
+    sentiment_score = sum_obj.get("sentiment_score", None) if isinstance(sum_obj, dict) else None
 
     # Transcript segments
     segments = detail.get("segments", []) if detail else []
@@ -184,13 +210,17 @@ def build_call_card(call, summary, detail, idx):
 
     # Header
     date_str = esc(call_date[:10]) if call_date else ""
+    qual_cls = {"hot": "qual-hot", "warm": "qual-warm", "cold": "qual-cold"}.get(qual_status, "qual-other")
     parts.append(
         '<div class="call-card" id="call-' + str(idx) + '">'
         '<div class="call-header" onclick="toggleCard(' + str(idx) + ')">'
         '<div class="call-header-left">'
         '<span class="call-number">Call #' + str(idx + 1) + "</span>"
+        '<span class="call-customer-name">' + esc(customer_name) + "</span>"
         '<span class="call-phone">' + esc(phone) + "</span>"
         '<span class="call-status status-' + status + '">' + esc(status) + "</span>"
+        '<span class="call-type-badge">' + esc(call_type.replace("_", " ").title()) + "</span>"
+        '<span class="qual-badge ' + qual_cls + '">' + esc(qual_status.upper()) + "</span>"
         "</div>"
         '<div class="call-header-right">'
         '<div class="compliance-mini">'
@@ -258,11 +288,163 @@ def build_call_card(call, summary, detail, idx):
             '<div class="objections-grid">' + obj_html + "</div></div>"
         )
 
-    # Qualification section
+    # Customer Intelligence + Qualification section
     if qual:
+        # Sentiment bar
+        sentiment_html = ""
+        if sentiment_score is not None:
+            s_pct = int(float(sentiment_score) * 100)
+            s_color = score_color(float(sentiment_score))
+            sentiment_html = (
+                '<div class="ci-row"><span class="ci-label">Sentiment</span>'
+                '<div class="ci-bar-bg"><div class="ci-bar-fill" style="width:' + str(s_pct) + '%;background:' + s_color + '"></div></div>'
+                '<span class="ci-value" style="color:' + s_color + '">' + str(s_pct) + '%</span></div>'
+            )
+
+        # Existing customer badge
+        existing_html = ""
+        if is_existing is not None:
+            if is_existing:
+                existing_html = '<span class="ci-tag ci-existing">Returning Customer</span>'
+            else:
+                existing_html = '<span class="ci-tag ci-new">New Customer</span>'
+
+        # Follow-up
+        followup_html = ""
+        if follow_up_req:
+            followup_html = (
+                '<div class="ci-followup"><strong>Follow-up Required</strong>'
+                '<div class="ci-followup-reason">' + esc(follow_up_reason[:300]) + '</div></div>'
+            )
+
+        # Decision makers
+        dm_html = ""
+        if decision_makers:
+            dm_tags = "".join('<span class="ci-dm-tag">' + esc(dm) + '</span>' for dm in decision_makers[:5])
+            dm_html = '<div class="ci-row-block"><span class="ci-label">Decision Makers</span><div class="ci-dm-list">' + dm_tags + '</div></div>'
+
+        # BANT scores
+        bant_html = ""
+        if bant:
+            bant_items = ""
+            for dim in ["budget", "authority", "need", "timeline"]:
+                val = bant.get(dim, 0) or 0
+                b_pct = int(float(val) * 100)
+                b_color = score_color(float(val))
+                bant_items += (
+                    '<div class="bant-item"><span class="bant-label">' + dim[0].upper() + " - " + dim.title() + '</span>'
+                    '<div class="ci-bar-bg"><div class="ci-bar-fill" style="width:' + str(b_pct) + '%;background:' + b_color + '"></div></div>'
+                    '<span class="ci-value" style="color:' + b_color + '">' + str(b_pct) + '%</span></div>'
+                )
+            overall_pct = int(float(overall_bant) * 100)
+            bant_html = (
+                '<div class="bant-section"><h4>BANT Lead Score: '
+                '<span style="color:' + score_color(float(overall_bant)) + '">' + str(overall_pct) + '%</span></h4>'
+                + bant_items + '</div>'
+            )
+
+        # Urgency signals
+        urgency_html = ""
+        if urgency_signals:
+            u_items = "".join('<div class="ci-signal">"' + esc(u[:200]) + '"</div>' for u in urgency_signals[:3])
+            urgency_html = '<div class="ci-row-block"><span class="ci-label">Urgency Signals</span>' + u_items + '</div>'
+
+        # Budget indicators
+        budget_html = ""
+        if budget_indicators:
+            b_items = "".join('<div class="ci-signal">"' + esc(b[:200]) + '"</div>' for b in budget_indicators[:3])
+            budget_html = '<div class="ci-row-block"><span class="ci-label">Budget Indicators</span>' + b_items + '</div>'
+
+        # Service + Appointment
+        service_html = ""
+        if service_requested:
+            service_html = '<div class="ci-row-block"><span class="ci-label">Service Requested</span><div class="ci-service">' + esc(service_requested[:300]) + '</div></div>'
+
+        # Appointment details
+        appt_html = ""
+        if appt_confirmed:
+            appt_text = "Confirmed"
+            if appt_date:
+                appt_text += " — " + esc(str(appt_date))
+            if appt_type:
+                appt_text += " (" + esc(appt_type) + ")"
+            appt_html = '<div class="ci-row"><span class="ci-label">Appointment</span><span class="ci-tag ci-existing">' + appt_text + '</span></div>'
+        elif appt_date:
+            appt_text = "Pending — " + esc(str(appt_date))
+            if appt_type:
+                appt_text += " (" + esc(appt_type) + ")"
+            appt_html = '<div class="ci-row"><span class="ci-label">Appointment</span><span class="ci-tag ci-new">' + appt_text + '</span></div>'
+
+        # Service address
+        address_html = ""
+        addr_parts = []
+        if addr_struct:
+            for f in ("line1", "city", "state", "postal_code"):
+                v = addr_struct.get(f)
+                if v:
+                    addr_parts.append(str(v))
+        if addr_raw and not addr_parts:
+            addr_parts = [addr_raw]
+        if addr_parts:
+            addr_str = ", ".join(addr_parts)
+            a_conf_pct = int(addr_confidence * 100)
+            a_color = score_color(addr_confidence)
+            address_html = (
+                '<div class="ci-row-block"><span class="ci-label">Service Address</span>'
+                '<div class="ci-address">' + esc(addr_str)
+                + ' <span class="ci-addr-conf" style="color:' + a_color + '">(confidence: ' + str(a_conf_pct) + '%)</span>'
+                + '</div></div>'
+            )
+
+        # Call outcome
+        outcome_html = ""
+        if call_outcome:
+            outcome_html = '<div class="ci-chip"><span class="ci-label">Outcome</span> <strong>' + esc(call_outcome.replace("_", " ").title()) + '</strong></div>'
+
+        # Validation confidence bars
+        validation_html = ""
+        if name_confidence > 0 or addr_confidence > 0:
+            nc_pct = int(name_confidence * 100)
+            nc_color = score_color(name_confidence)
+            ac_pct = int(addr_confidence * 100)
+            ac_color = score_color(addr_confidence)
+            validation_html = (
+                '<div class="ci-row-block"><span class="ci-label">Extraction Validation</span>'
+                '<div class="bant-item"><span class="bant-label">Name Confidence</span>'
+                '<div class="ci-bar-bg"><div class="ci-bar-fill" style="width:' + str(nc_pct) + '%;background:' + nc_color + '"></div></div>'
+                '<span class="ci-value" style="color:' + nc_color + '">' + str(nc_pct) + '%</span></div>'
+                '<div class="bant-item"><span class="bant-label">Address Confidence</span>'
+                '<div class="ci-bar-bg"><div class="ci-bar-fill" style="width:' + str(ac_pct) + '%;background:' + ac_color + '"></div></div>'
+                '<span class="ci-value" style="color:' + ac_color + '">' + str(ac_pct) + '%</span></div>'
+                '</div>'
+            )
+
+        # Booking status
+        booking_cls = "ci-existing" if booking_status == "booked" else "ci-new"
+        booking_text = booking_status.replace("_", " ").title()
+
         parts.append(
-            '<div class="section"><h3>Lead Qualification</h3>'
-            '<pre class="json-block">' + esc(json.dumps(qual, indent=2, default=str)[:1500]) + "</pre></div>"
+            '<div class="section"><h3>Customer Intelligence & Lead Qualification</h3>'
+            '<div class="ci-grid">'
+            '<div class="ci-info-row">'
+            '<div class="ci-chip"><span class="ci-label">Customer</span> <strong>' + esc(customer_name) + '</strong></div>'
+            + existing_html
+            + '<div class="ci-chip"><span class="ci-label">Call Type</span> <strong>' + esc(call_type.replace("_", " ").title()) + '</strong></div>'
+            + '<span class="ci-tag ' + booking_cls + '">' + booking_text + '</span>'
+            + outcome_html
+            + '<div class="ci-chip"><span class="ci-label">Confidence</span> <strong>' + str(int(confidence * 100)) + '%</strong></div>'
+            + '</div>'
+            + sentiment_html
+            + bant_html
+            + dm_html
+            + address_html
+            + urgency_html
+            + budget_html
+            + service_html
+            + appt_html
+            + followup_html
+            + validation_html
+            + '</div></div>'
         )
 
     # Transcript section
@@ -409,6 +591,44 @@ def build_html(calls_data, phases_analytics):
 
   /* JSON */
   .json-block {{ background: #020617; color: #94a3b8; padding: 12px; border-radius: 8px; font-size: 12px; overflow-x: auto; max-height: 300px; overflow-y: auto; white-space: pre-wrap; }}
+
+  /* Call header extras */
+  .call-customer-name {{ font-weight: 700; color: #f97316; font-size: 14px; }}
+  .call-type-badge {{ background: #1e3a5f; color: #7dd3fc; padding: 2px 10px; border-radius: 9999px; font-size: 11px; font-weight: 600; }}
+  .qual-badge {{ padding: 2px 10px; border-radius: 9999px; font-size: 11px; font-weight: 700; }}
+  .qual-hot {{ background: #14532d; color: #86efac; }}
+  .qual-warm {{ background: #422006; color: #fdba74; }}
+  .qual-cold {{ background: #1e3a5f; color: #7dd3fc; }}
+  .qual-other {{ background: #334155; color: #94a3b8; }}
+
+  /* Customer Intelligence */
+  .ci-grid {{ display: flex; flex-direction: column; gap: 14px; }}
+  .ci-info-row {{ display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }}
+  .ci-chip {{ background: #1e293b; padding: 6px 14px; border-radius: 8px; font-size: 13px; color: #cbd5e1; }}
+  .ci-chip strong {{ color: #f8fafc; }}
+  .ci-label {{ color: #94a3b8; font-size: 12px; margin-right: 4px; }}
+  .ci-tag {{ padding: 3px 12px; border-radius: 9999px; font-size: 11px; font-weight: 600; }}
+  .ci-existing {{ background: #14532d; color: #86efac; }}
+  .ci-new {{ background: #422006; color: #fdba74; }}
+  .ci-row {{ display: flex; align-items: center; gap: 10px; }}
+  .ci-bar-bg {{ flex: 1; max-width: 300px; height: 10px; background: #334155; border-radius: 5px; overflow: hidden; }}
+  .ci-bar-fill {{ height: 100%; border-radius: 5px; transition: width 0.5s; }}
+  .ci-value {{ font-size: 13px; font-weight: 700; min-width: 40px; }}
+  .ci-row-block {{ margin-top: 4px; }}
+  .ci-dm-list {{ display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }}
+  .ci-dm-tag {{ background: #1e293b; color: #cbd5e1; padding: 4px 12px; border-radius: 6px; font-size: 12px; }}
+  .ci-signal {{ color: #94a3b8; font-size: 12px; font-style: italic; padding: 4px 0 2px 12px; border-left: 2px solid #334155; margin: 4px 0; }}
+  .ci-service {{ color: #cbd5e1; font-size: 13px; margin-top: 4px; }}
+  .ci-followup {{ background: #422006; border-radius: 8px; padding: 12px; border-left: 3px solid #f97316; }}
+  .ci-followup-reason {{ color: #cbd5e1; font-size: 13px; margin-top: 6px; }}
+  .ci-address {{ color: #cbd5e1; font-size: 13px; margin-top: 4px; }}
+  .ci-addr-conf {{ font-size: 11px; font-weight: 600; }}
+
+  /* BANT */
+  .bant-section {{ background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 14px; }}
+  .bant-section h4 {{ font-size: 14px; color: #f8fafc; margin-bottom: 10px; }}
+  .bant-item {{ display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }}
+  .bant-label {{ width: 110px; font-size: 12px; color: #94a3b8; }}
 
   /* Controls */
   .controls {{ display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }}
