@@ -1,33 +1,13 @@
 # Otto (gomotto) – Test Cases
 
-Staging: **https://stage.app.gomotto.com/sign-in**  
+Staging: **https://stage.app.gomotto.com/sign-in**
 Focus: **CSR** stage first; Sales Rep, Voice Agent, and Ask Otto stages are scoped for later.
 
 ---
 
 ## 1. CSR Stage (Current Focus)
 
-### 1.1 Authentication & navigation
-
-| ID | Description | Type | Steps | Expected |
-|----|-------------|------|--------|----------|
-| TC-CSR-001 | Sign-in page loads | E2E | Open `/sign-in` | Email and Password fields and Sign In button visible |
-| TC-CSR-002 | Empty submit stays on sign-in | E2E | Click Sign In with empty fields | No redirect; form still visible |
-| TC-CSR-003 | Invalid credentials show error | E2E | Submit wrong email/password | Error message visible; remain on sign-in |
-| TC-CSR-004 | Valid login lands on Team dashboard | E2E | Sign in with valid credentials | Redirect away from `/sign-in`; dashboard visible |
-| TC-CSR-005 | Sidebar toggle button visible and clickable | E2E | From dashboard, find sidebar button (flex h-10 w-10 rounded-full) | Button visible and clickable |
-| TC-CSR-006 | Navigate to Pipeline from sidebar | E2E | Open sidebar → click "Pipeline" link | URL contains `pipeline`; Pipeline page loads |
-| TC-CSR-007 | Pipeline page loads without error | E2E | After TC-CSR-006 | Main content area visible; no blank/error state |
-
-### 1.2 Pipeline & analytics (graph data)
-
-| ID | Description | Type | Steps | Expected |
-|----|-------------|------|--------|----------|
-| TC-CSR-008 | Pipeline has main content area | E2E | On Pipeline page | `main` or pipeline container visible |
-| TC-CSR-009 | Analytics/chart container present | E2E | On Pipeline page | Chart/graph element (e.g. canvas, chart class) visible |
-| TC-CSR-010 | Metrics/summary cards visible | E2E | On Pipeline page | At least one metric/card/stat block visible |
-
-### 1.3 Call processing API (backend for CSR)
+### 1.1 Call processing API (backend for CSR)
 
 | ID | Description | Type | Steps | Expected |
 |----|-------------|------|--------|----------|
@@ -38,7 +18,7 @@ Focus: **CSR** stage first; Sales Rep, Voice Agent, and Ask Otto stages are scop
 | TC-CSR-015 | List calls with company_id | API | GET with valid UUID company_id, limit=5 | 200, `calls` array, `total` |
 | TC-CSR-016 | List summaries with filters | API | GET summaries with company_id, sort | 200, `summaries` array |
 
-### 1.4 ASR / STT (transcription)
+### 1.2 ASR / STT (transcription)
 
 | ID | Description | Type | Steps | Expected |
 |----|-------------|------|--------|----------|
@@ -53,9 +33,7 @@ Focus: **CSR** stage first; Sales Rep, Voice Agent, and Ask Otto stages are scop
 
 | ID | Description | Type | Notes |
 |----|-------------|------|--------|
-| TC-SR-001 | Rep dashboard loads after login | E2E | Role-based view |
-| TC-SR-002 | Rep pipeline/list view | E2E | Rep-specific calls/leads |
-| TC-SR-003 | Lead scoring / BANT visibility | E2E/API | Insights API, lead endpoints |
+| TC-SR-003 | Lead scoring / BANT visibility | API | Insights API, lead endpoints |
 
 ---
 
@@ -63,8 +41,7 @@ Focus: **CSR** stage first; Sales Rep, Voice Agent, and Ask Otto stages are scop
 
 | ID | Description | Type | Notes |
 |----|-------------|------|--------|
-| TC-VA-001 | Voice agent UI loads | E2E | TBD |
-| TC-VA-002 | Real-time STT/ASR round-trip | E2E/API | Audio in → transcript/summary out |
+| TC-VA-002 | Real-time STT/ASR round-trip | API | Audio in → transcript/summary out |
 | TC-VA-003 | Latency and accuracy metrics | API/ASR | Use call-processing pipeline |
 
 ---
@@ -73,7 +50,6 @@ Focus: **CSR** stage first; Sales Rep, Voice Agent, and Ask Otto stages are scop
 
 | ID | Description | Type | Notes |
 |----|-------------|------|--------|
-| TC-AO-001 | Ask Otto chat UI loads | E2E | TBD |
 | TC-AO-002 | Create conversation | API | POST conversations |
 | TC-AO-003 | Send message and get response | API | Message round-trip |
 | TC-AO-004 | Intent routing / RAG responses | API | Per ARCHITECTURE_FEATURE_3 |
@@ -84,16 +60,13 @@ Focus: **CSR** stage first; Sales Rep, Voice Agent, and Ask Otto stages are scop
 
 | Area | Framework / tool | Purpose |
 |------|-------------------|--------|
-| E2E | **Playwright** | Login, dashboard, sidebar, Pipeline, analytics UI |
 | API | **pytest** + **requests** | Call processing, insights, list calls/summaries |
 | ASR/STT | **pytest** + **jiwer** (optional) | Transcription contract tests; WER when reference transcripts exist |
-| Analytics/graphs | **Playwright** | Presence of charts, metrics, and main content on Pipeline |
 
 ---
 
 ## Running tests
 
-- **E2E:** `npm install && npx playwright install && npm run test:e2e`
 - **API:** `pip install -r requirements-dev.txt && pytest tests/api -v`
 - **ASR/STT:** `pytest tests/asr_stt -v`
 

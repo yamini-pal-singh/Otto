@@ -2,7 +2,7 @@
 
 > **Audience:** Stakeholders, QA, Developers
 > **Last Updated:** March 2026
-> **Staging Company:** Arizona Roofers (`91ecfcb9-fc40-4792-ba47-65b273cec204`)
+> **Staging Company:** Arizona Roofers (`1be5ea90-d3ae-4b03-8b05-f5679cd73bc4`)
 
 ---
 
@@ -247,31 +247,28 @@ Our test suite does **not** connect to MongoDB directly. The database lives insi
 │  .env file:                                                  │
 │    OTTO_API_BASE_URL = https://ottoai.shunyalabs.ai          │
 │    OTTO_API_KEY      = 5q3fwl...BnBP                         │
-│    STAGING_URL       = https://stage.app.gomotto.com          │
-│    SIGN_IN_EMAIL     = anthony@arizonaroofers.com             │
 │                                                              │
-│  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐  │
-│  │  API Tests     │  │  ASR/STT Tests │  │  E2E Tests     │  │
-│  │  (pytest)      │  │  (pytest)      │  │  (Playwright)  │  │
-│  │                │  │                │  │                │  │
-│  │ Tests 19 API   │  │ Tests word     │  │ Tests staging  │  │
-│  │ endpoints      │  │ error rate     │  │ UI (sign-in,   │  │
-│  │ against real   │  │ of ASR         │  │ pipeline,      │  │
-│  │ staging data   │  │ transcription  │  │ analytics)     │  │
-│  └───────┬────────┘  └───────┬────────┘  └───────┬────────┘  │
-│          │                   │                    │           │
-└──────────┼───────────────────┼────────────────────┼───────────┘
-           │                   │                    │
-           ▼                   ▼                    ▼
-   ┌──────────────┐    ┌──────────────┐    ┌──────────────────┐
-   │  Otto API    │    │  Otto API    │    │ Staging Web App  │
-   │  (REST)      │    │  (REST)      │    │ (gomotto.com)    │
-   │              │    │              │    │                  │
-   │  Reads from: │    │  Reads from: │    │  Reads from:     │
-   │  MongoDB     │    │  MongoDB     │    │  Same backend    │
-   │  Redis       │    │              │    │  MongoDB/Redis   │
-   │  Milvus      │    │              │    │                  │
-   └──────────────┘    └──────────────┘    └──────────────────┘
+│  ┌────────────────────────┐  ┌────────────────────────┐      │
+│  │  API Tests             │  │  ASR/STT Tests         │      │
+│  │  (pytest)              │  │  (pytest)              │      │
+│  │                        │  │                        │      │
+│  │ Tests 19 API endpoints │  │ Tests word error rate  │      │
+│  │ against real staging   │  │ of ASR transcription   │      │
+│  │ data                   │  │                        │      │
+│  └───────────┬────────────┘  └───────────┬────────────┘      │
+│              │                           │                   │
+└──────────────┼───────────────────────────┼───────────────────┘
+               │                           │
+               ▼                           ▼
+       ┌──────────────┐            ┌──────────────┐
+       │  Otto API    │            │  Otto API    │
+       │  (REST)      │            │  (REST)      │
+       │              │            │              │
+       │  Reads from: │            │  Reads from: │
+       │  MongoDB     │            │  MongoDB     │
+       │  Redis       │            │              │
+       │  Milvus      │            │              │
+       └──────────────┘            └──────────────┘
 ```
 
 ---
@@ -308,7 +305,7 @@ generate_report.py
 | Data Point               | Value                                              |
 |--------------------------|----------------------------------------------------|
 | **Company**              | Arizona Roofers                                    |
-| **Company ID**           | `91ecfcb9-fc40-4792-ba47-65b273cec204`            |
+| **Company ID**           | `1be5ea90-d3ae-4b03-8b05-f5679cd73bc4`            |
 | **Agent**                | Anthony (`anthony@arizonaroofers.com`)              |
 | **Total Calls**          | 23                                                 |
 | **Calls with Summaries** | 22                                                 |
@@ -319,10 +316,16 @@ generate_report.py
 
 ### Sample Audio URLs (Real Recordings)
 ```
-https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/7f236d85-.../4046177579.mp3
-https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/e481bac8-.../4045738307.mp3
-https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/0a44255f-.../4044411224.mp3
-https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/dda68a37-.../4046545208.mp3
+https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/56dc7e30-.../4019778374.mp3
+https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/6e37c8bb-.../4037028977.mp3
+https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/aa4018dd-.../4036931546.mp3
+https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/bdc3fc20-.../4036863062.mp3
+https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/a5933178-.../4036836500.mp3
+https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/8c6b15ee-.../4049722733.mp3
+https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/80913c6a-.../4043584280.mp3
+https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/eff6032d-.../4036334162.mp3
+https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/323d1a76-.../3998154371.mp3
+https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/1fd7bea5-.../4015296617.mp3
 ```
 
 ---

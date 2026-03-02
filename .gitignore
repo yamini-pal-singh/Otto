@@ -18,3 +18,9 @@ venv/
 test-results/
 playwright-report/
 playwright/.cache/
+
+# macOS metadata
+.DS_Store
+
+# Generated HTML reports (keep only intentional outputs)
+call_report*.html

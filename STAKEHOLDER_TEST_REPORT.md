@@ -210,52 +210,21 @@ Otto takes a **raw phone call recording** and transforms it into **structured bu
   └─────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 4c. E2E / UI Tests — 20 Tests (Chromium + Firefox)
-
-```
-  ┌─────────────────────────────────────────────────────────────────────────┐
-  │                     E2E UI TEST COVERAGE                               │
-  │             Target: https://stage.app.gomotto.com                       │
-  │             User: anthony@arizonaroofers.com                            │
-  │             Browsers: Chromium ✅  Firefox ✅                           │
-  ├─────────────────────────────────────────────────────────────────────────┤
-  │                                                                         │
-  │  ── SIGN-IN PAGE (3 tests × 2 browsers = 6) ──────────────────────    │
-  │  ✅ Sign-in form loads (email + password + button visible)              │
-  │  ✅ Button disabled when fields empty (validation)                      │
-  │  ✅ Invalid credentials show error message                              │
-  │                                                                         │
-  │  ── NAVIGATION & DASHBOARD (4 tests × 2 browsers = 8) ────────────    │
-  │  ✅ Successful login → lands on Team dashboard                          │
-  │  ✅ Sidebar toggle button visible and clickable                         │
-  │  ✅ Navigate to Pipeline from sidebar                                   │
-  │  ✅ Pipeline page loads without errors                                  │
-  │                                                                         │
-  │  ── PIPELINE BOARD (3 tests × 2 browsers = 6) ────────────────────    │
-  │  ✅ Main content area visible                                           │
-  │  ✅ Kanban columns visible (Unqualified/Qualified/Service Not           │
-  │     Offered/Booked)                                                     │
-  │  ✅ Lead count summary displayed (e.g., "105 leads · $14k · 2 won")    │
-  │                                                                         │
-  └─────────────────────────────────────────────────────────────────────────┘
-```
-
 ---
 
 ## 5. Test Results Summary (Latest Run)
 
 ```
   ╔═══════════════════════════════════════════════════════════════╗
-  ║                    OVERALL: 43 TESTS                         ║
+  ║                    OVERALL: 24 TESTS                         ║
   ║                                                               ║
   ║   ┌─────────────┬──────────┬────────┬─────────┬───────────┐  ║
   ║   │ Suite       │ Total    │ Passed │ Skipped │ Failed    │  ║
   ║   ├─────────────┼──────────┼────────┼─────────┼───────────┤  ║
   ║   │ API         │   19     │  ✅ 19 │    0    │    0      │  ║
   ║   │ ASR/STT     │    5     │  ✅  4 │  ⏭️  1  │    0      │  ║
-  ║   │ E2E (2 🌐)  │   20     │  ✅ 20 │    0    │    0      │  ║
   ║   ├─────────────┼──────────┼────────┼─────────┼───────────┤  ║
-  ║   │ TOTAL       │   44     │  ✅ 43 │  ⏭️  1  │  ❌  0    │  ║
+  ║   │ TOTAL       │   24     │  ✅ 23 │  ⏭️  1  │  ❌  0    │  ║
   ║   └─────────────┴──────────┴────────┴─────────┴───────────┘  ║
   ║                                                               ║
   ║   Real staging data: ✅  |  Fake/sample data: ❌ None        ║
@@ -270,7 +239,7 @@ Otto takes a **raw phone call recording** and transforms it into **structured bu
 | Data Point         | Value                                              |
 |--------------------|----------------------------------------------------|
 | **Company**        | Arizona Roofers                                    |
-| **Company ID**     | `91ecfcb9-fc40-4792-ba47-65b273cec204`             |
+| **Company ID**     | `1be5ea90-d3ae-4b03-8b05-f5679cd73bc4`             |
 | **Agent**          | Anthony (anthony@arizonaroofers.com)               |
 | **Calls in System**| 20 processed calls                                 |
 | **Summaries**      | 19 completed summaries                             |
@@ -306,7 +275,7 @@ Otto takes a **raw phone call recording** and transforms it into **structured bu
 | Weekly Insights Engine         | Feature 2 — needs APScheduler trigger       | Low      |
 | Webhook Callbacks              | Not configured in staging                   | Low      |
 | Multi-call Summary (3-call)    | Needs 3+ calls from same customer           | Low      |
-| Lead Insights / Call Log pages | E2E only covers Pipeline currently          | Medium   |
+| Lead Insights / Call Log pages | No UI test coverage currently               | Medium   |
 
 ---
 
@@ -318,12 +287,6 @@ python3 -m pytest tests/api -v
 
 # ASR/Transcription tests
 python3 -m pytest tests/asr_stt -v
-
-# E2E UI tests (Chromium + Firefox)
-npx playwright test
-
-# E2E with visible browser (for demos)
-npm run test:e2e:headed
 ```
 
 ---
