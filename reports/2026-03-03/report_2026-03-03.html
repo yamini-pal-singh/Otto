@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Otto Intelligence — Comprehensive Test & Call Report</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #e2e8f0; line-height: 1.6; }
+  .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+
+  .report-header { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid #334155; border-radius: 16px; padding: 32px; margin-bottom: 24px; }
+  .report-title { font-size: 28px; font-weight: 800; background: linear-gradient(90deg, #f97316, #eab308); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .report-subtitle { color: #94a3b8; font-size: 14px; margin-top: 4px; }
+  .stats-row { display: flex; gap: 16px; margin-top: 20px; flex-wrap: wrap; }
+  .stat-box { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 16px 24px; min-width: 140px; }
+  .stat-value { font-size: 28px; font-weight: 800; color: #f8fafc; }
+  .stat-label { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+
+  .test-results-section, .param-section { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+  .test-results-section h2, .param-section h2 { font-size: 18px; margin-bottom: 16px; color: #f8fafc; }
+  .test-summary-bar { display: flex; gap: 16px; margin-bottom: 16px; }
+  .test-stat { background: #0f172a; border: 2px solid; border-radius: 12px; padding: 12px 20px; text-align: center; min-width: 80px; }
+  .test-stat-val { display: block; font-size: 24px; font-weight: 800; }
+  .test-stat-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; }
+  .test-table, .param-table, .pv-table { width: 100%; border-collapse: collapse; }
+  .test-table th, .param-table th, .pv-table th { text-align: left; padding: 8px 12px; border-bottom: 2px solid #334155; color: #94a3b8; font-size: 12px; text-transform: uppercase; }
+  .test-table td, .param-table td, .pv-table td { padding: 6px 12px; border-bottom: 1px solid #1e293b; font-size: 13px; }
+  .test-table tr:hover, .param-table tr:hover, .pv-table tr:hover { background: #334155; }
+
+  .phases-section { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+  .phases-section h2 { font-size: 18px; margin-bottom: 16px; color: #f8fafc; }
+  .phase-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .phase-name { width: 200px; font-size: 13px; color: #cbd5e1; }
+  .phase-bar-bg { flex: 1; height: 24px; background: #334155; border-radius: 12px; overflow: hidden; }
+  .phase-bar-fill { height: 100%; border-radius: 12px; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; font-size: 11px; font-weight: 700; color: #fff; }
+  .missing-tags { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .missing-tag { background: #7f1d1d; color: #fca5a5; padding: 4px 12px; border-radius: 9999px; font-size: 12px; }
+
+  .call-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+  .call-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; cursor: pointer; transition: background 0.2s; }
+  .call-header:hover { background: #334155; }
+  .call-header-left, .call-header-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .call-number { font-weight: 700; color: #f8fafc; font-size: 15px; }
+  .call-customer-name { font-weight: 700; color: #f97316; font-size: 14px; }
+  .call-phone { color: #94a3b8; font-size: 13px; font-family: monospace; }
+  .call-status { padding: 2px 10px; border-radius: 9999px; font-size: 11px; font-weight: 600; }
+  .status-completed { background: #14532d; color: #86efac; }
+  .status-processing { background: #422006; color: #fdba74; }
+  .status-failed { background: #7f1d1d; color: #fca5a5; }
+  .call-date { color: #64748b; font-size: 12px; }
+  .call-type-badge { background: #1e3a5f; color: #7dd3fc; padding: 2px 10px; border-radius: 9999px; font-size: 11px; font-weight: 600; }
+  .qual-badge { padding: 2px 10px; border-radius: 9999px; font-size: 11px; font-weight: 700; }
+  .qual-hot { background: #14532d; color: #86efac; }
+  .qual-warm { background: #422006; color: #fdba74; }
+  .qual-cold { background: #1e3a5f; color: #7dd3fc; }
+  .qual-other { background: #334155; color: #94a3b8; }
+  .pv-badge { background: #1e293b; border: 1px solid #334155; color: #cbd5e1; padding: 2px 10px; border-radius: 9999px; font-size: 11px; font-weight: 600; }
+  .expand-icon { color: #64748b; font-size: 12px; transition: transform 0.2s; }
+  .compliance-mini { display: flex; align-items: center; gap: 6px; }
+  .mini-bar-bg { width: 60px; height: 6px; background: #334155; border-radius: 3px; overflow: hidden; }
+  .mini-bar-fill { height: 100%; border-radius: 3px; }
+
+  .call-body { padding: 0 20px 20px; }
+  .section { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 20px; margin-top: 16px; }
+  .section h3 { font-size: 16px; color: #f97316; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px; }
+  .section h4 { font-size: 14px; color: #cbd5e1; margin: 12px 0 8px; }
+  .summary-text { color: #cbd5e1; font-size: 14px; margin-bottom: 12px; }
+  .key-point { color: #94a3b8; font-size: 13px; padding: 3px 0 3px 12px; }
+  .action-item { color: #86efac; font-size: 13px; padding: 3px 0 3px 12px; }
+
+  .detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .detail-item { background: #1e293b; padding: 10px; border-radius: 8px; }
+  .detail-label { display: block; font-size: 11px; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; }
+  .detail-val { color: #f8fafc; font-size: 13px; }
+
+  .score-display { display: flex; align-items: center; gap: 24px; margin-bottom: 16px; }
+  .score-circle { width: 80px; height: 80px; border-radius: 50%; border: 4px solid; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; flex-shrink: 0; }
+  .score-details { flex: 1; }
+  .stage-bar { margin-bottom: 8px; }
+  .stage-label { font-size: 12px; color: #94a3b8; }
+  .bar-bg { height: 8px; background: #334155; border-radius: 4px; overflow: hidden; margin-top: 4px; }
+  .bar-fill { height: 100%; border-radius: 4px; }
+  .sop-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .sop-tag { padding: 3px 10px; border-radius: 6px; font-size: 11px; }
+  .sop-followed { background: #14532d; color: #86efac; }
+  .sop-missed { background: #7f1d1d; color: #fca5a5; }
+
+  .coaching-item { background: #1e293b; border-radius: 8px; padding: 14px; margin-bottom: 10px; border-left: 3px solid #f97316; }
+  .coaching-header { margin-bottom: 6px; }
+  .coaching-issue { color: #94a3b8; font-size: 13px; margin-bottom: 8px; }
+  .coaching-fix { color: #cbd5e1; font-size: 13px; margin-bottom: 6px; }
+  .coaching-example { color: #22d3ee; font-size: 12px; font-style: italic; background: #0c4a6e22; padding: 8px 12px; border-radius: 6px; }
+  .coaching-more { color: #64748b; font-size: 13px; text-align: center; padding: 8px; }
+
+  .objections-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 12px; }
+  .objection-card { background: #1e293b; border-radius: 8px; padding: 14px; border-left: 3px solid #eab308; }
+  .obj-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .obj-category { color: #cbd5e1; font-size: 13px; font-weight: 600; }
+  .obj-overcome { padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; }
+  .overcome-yes { background: #14532d; color: #86efac; }
+  .overcome-no { background: #7f1d1d; color: #fca5a5; }
+  .obj-quote { color: #94a3b8; font-size: 13px; font-style: italic; margin-bottom: 6px; }
+  .obj-suggestion { color: #22d3ee; font-size: 12px; background: #0c4a6e22; padding: 6px 10px; border-radius: 6px; margin-top: 6px; }
+
+  .ci-grid { display: flex; flex-direction: column; gap: 14px; }
+  .ci-info-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  .ci-chip { background: #1e293b; padding: 6px 14px; border-radius: 8px; font-size: 13px; color: #cbd5e1; }
+  .ci-chip strong { color: #f8fafc; }
+  .ci-label { color: #94a3b8; font-size: 12px; margin-right: 4px; }
+  .ci-tag { padding: 3px 12px; border-radius: 9999px; font-size: 11px; font-weight: 600; }
+  .ci-existing { background: #14532d; color: #86efac; }
+  .ci-new { background: #422006; color: #fdba74; }
+  .ci-row { display: flex; align-items: center; gap: 10px; }
+  .ci-bar-bg { flex: 1; max-width: 300px; height: 10px; background: #334155; border-radius: 5px; overflow: hidden; }
+  .ci-bar-fill { height: 100%; border-radius: 5px; }
+  .ci-value { font-size: 13px; font-weight: 700; min-width: 40px; }
+  .ci-row-block { margin-top: 4px; }
+  .ci-dm-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .ci-dm-tag { background: #1e293b; color: #cbd5e1; padding: 4px 12px; border-radius: 6px; font-size: 12px; }
+  .ci-signal { color: #94a3b8; font-size: 12px; font-style: italic; padding: 4px 0 2px 12px; border-left: 2px solid #334155; margin: 4px 0; }
+  .ci-service { color: #cbd5e1; font-size: 13px; margin-top: 4px; }
+  .ci-followup { background: #422006; border-radius: 8px; padding: 12px; border-left: 3px solid #f97316; }
+  .ci-followup-reason { color: #cbd5e1; font-size: 13px; margin-top: 6px; }
+  .ci-address { color: #cbd5e1; font-size: 13px; margin-top: 4px; }
+  .ci-addr-conf { font-size: 11px; font-weight: 600; }
+
+  .bant-section { background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 14px; }
+  .bant-section h4 { font-size: 14px; color: #f8fafc; margin-bottom: 10px; }
+  .bant-item { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .bant-label { width: 110px; font-size: 12px; color: #94a3b8; }
+
+  .transcript-box { max-height: 500px; overflow-y: auto; padding: 12px; background: #020617; border-radius: 8px; }
+  .segment { margin-bottom: 10px; }
+  .speaker { display: inline-block; min-width: 120px; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-right: 8px; }
+  .speaker-customer_rep { background: #1e3a5f; color: #7dd3fc; }
+  .speaker-home_owner { background: #365314; color: #bef264; }
+  .speaker-manager { background: #4a1d96; color: #c4b5fd; }
+  .speaker-unknown { background: #334155; color: #94a3b8; }
+  .seg-text { color: #cbd5e1; font-size: 13px; }
+
+  .controls { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+  .btn { padding: 8px 16px; border-radius: 8px; border: 1px solid #334155; background: #1e293b; color: #e2e8f0; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+  .btn:hover { background: #334155; }
+  .btn-active { background: #f97316; border-color: #f97316; color: #000; font-weight: 600; }
+
+  .nav-tabs { display: flex; gap: 4px; margin-bottom: 24px; background: #1e293b; padding: 4px; border-radius: 12px; }
+  .nav-tab { padding: 10px 20px; border-radius: 8px; border: none; background: transparent; color: #94a3b8; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s; }
+  .nav-tab:hover { color: #e2e8f0; }
+  .nav-tab.active { background: #f97316; color: #000; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="report-header">
+    <div class="report-title">Otto Intelligence — Comprehensive Test &amp; Call Report</div>
+    <div class="report-subtitle">Arizona Roofers &bull; Company: 1be5ea90-d3ae-4b03-8b05-f5679cd73bc4 &bull; Generated 2026-03-03 14:12 UTC &bull; API: https://ottoai.shunyalabs.ai</div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-value">2</div><div class="stat-label">Total Calls</div></div>
+      <div class="stat-box"><div class="stat-value">2</div><div class="stat-label">Completed</div></div>
+      <div class="stat-box"><div class="stat-value" style="color:#22c55e">24/24</div><div class="stat-label">Tests Passed</div></div>
+      <div class="stat-box"><div class="stat-value">0%</div><div class="stat-label">Field Coverage</div></div>
+      <div class="stat-box"><div class="stat-value">54</div><div class="stat-label">Phases Analyzed</div></div>
+      <div class="stat-box"><div class="stat-value">3</div><div class="stat-label">Missing Phases</div></div>
+    </div>
+  </div>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showTab('tests')">API Tests (24/24)</button>
+    <button class="nav-tab" onclick="showTab('params')">Parameter Validation</button>
+    <button class="nav-tab" onclick="showTab('phases')">Phase Analytics</button>
+    <button class="nav-tab" onclick="showTab('calls')">Call Details (2)</button>
+  </div>
+
+  <div class="tab-content active" id="tab-tests">
+    
+    <div class="test-results-section">
+        <h2>API Test Results</h2>
+        <div class="test-summary-bar">
+            <div class="test-stat" style="border-color:#22c55e"><span class="test-stat-val" style="color:#22c55e">24</span><span class="test-stat-label">Passed</span></div>
+            <div class="test-stat" style="border-color:#ef4444"><span class="test-stat-val" style="color:#ef4444">0</span><span class="test-stat-label">Failed</span></div>
+            <div class="test-stat" style="border-color:#f97316"><span class="test-stat-val" style="color:#f97316">0</span><span class="test-stat-label">Timeout</span></div>
+            <div class="test-stat" style="border-color:#3b82f6"><span class="test-stat-val" style="color:#3b82f6">24</span><span class="test-stat-label">Total</span></div>
+        </div>
+        <table class="test-table">
+            <thead><tr><th>Category</th><th>Test</th><th></th><th>Result</th><th>Expected</th><th>Actual</th><th>Detail</th></tr></thead>
+            <tbody><tr><td style="color:#94a3b8">Infrastructure</td><td>Health check returns healthy</td><td style="text-align:center;font-size:18px">&#9989;</td><td style="color:#22c55e;font-weight:700">PASS</td><td style="color:#64748b">HTTP {200}</td><td style="color:#cbd5e1">HTTP 200</td><td style="color:#94a3b8;font-size:12px">status=healthy</td></tr><tr><td style="color:#94a3b8">Authentication</td><td>API status requires auth (no key)</td><td style="text-align:center;font-size:18px">&#9989;</td><td style="color:#22c55e;font-weight:700">PASS</td><td style="color:#64748b">HTTP {401}</td><td style="color:#cbd5e1">HTTP 401</td><td style="color:#94a3b8;font-size:12px"></td></tr><tr><td style="color:#94a3b8">Authentication</td><td>API status rejects wrong key</td><td style="text-align:center;font-size:18px">&#9989;</td><td style="color:#22c55e;font-weight:700">PASS</td><td style="color:#64748b">HTTP {401, 403}</td><td style="color:#cbd5e1">HTTP 401</td><td style="color:#94a3b8;font-size:12px"></td></tr><tr><td style="color:#94a3b8">Authentication</td><td>API status rejects empty key</td><td style="text-align:center;font-size:18px">&#9989;</td><td style="color:#22c55e;font-weight:700">PASS</td><td style="color:#64748b">HTTP {401}</td><td style="color:#cbd5e1">HTTP 401</td><td style="color:#94a3b8;font-size:12px"></td></tr><tr><td style="color:#94a3b8">Authentication</td><td>API status with valid key</td><td style="text-align:center;font-size:18px">&#9989;</td><td style="color:#22c55e;font-weight:700">PASS</td><td style="color:#64748b">HTTP {200}</td><td style="color:#cbd5e1">HTTP 200</td><td style="color:#94a3b8;font-size:12px">version=v1</td></tr><tr><td style="color:#94a3b8">List Calls</td><td>List calls requires company_id</td><td style="text-align:center;font-size:18px">&#9989;</td><td style="color:#22c55e;font-weight:700">PASS</td><td style="color:#64748b">HTTP {400, 422}</td><td style="color:#cbd5e1">HTTP 422</td><td style="color:#94a3b8;font-size:12px"></td></tr><tr><td style="color:#94a3b8">List Calls</td><td>List calls with valid company_id</td><td style="text-align:center;font-size:18px">&#9989;</td><td style="color:#22c55e;font-weight:700">PASS</td><td style="color:#64748b">HTTP {200}</td><td style="color:#cbd5e1">HTTP 200</td><td style="color:#94a3b8;font-size:12px">calls=50</td></tr><tr><td style="color:#94a3b8">List Calls</td><td>List calls with nonexistent company</td><td style="text-align:center;font-size:18px">&#9989;</td><td style="color:#22c55e;font-weight:700">PASS</td><td style="color:#64748b">HTTP {200, 404}</td><td style="color:#cbd5e1">HTTP 200</td><td style="color:#94a3b8;font-size:12px"></td></tr><tr><td style="color:#94a3b8">List Calls</td><td>List calls rejects negative limit</td><td style="text-align:center;font-size:18px">&#9989;</td><td style="color:#22c55e;font-weight:700">PASS</td><td style="color:#64748b">HTTP {400, 422}</td><td style="color:#cbd5e1">HTTP 422</td><td style="color:#94a3b8;font-size:12px"></td></tr><tr><td style="color:#94a3b8">List Summaries</td><td>List summaries with filters</td><td style="text-align:center;font-size:18px">&#9989;</td><td style="color:#22c55e;font-weight:700">PASS</td><td style="color:#64748b">HTTP {200}</td><td style="color:#cbd5e1">HTTP 200</td><td style="color:#94a3b8;font-size:12px">summaries=50</td></tr><tr><td style="color:#94a3b8">List Summaries</td><td>Summaries min_score &gt; max_score returns empty</td><td style="text-align:center;font-size:18px">&#9989;</td><td style="color:#22c55e;font-weight:700">PASS</td><td style="color:#64748b">HTTP {200, 400}</td><td style="color:#cbd5e1">HTTP 200</td><td style="color:#94a3b8;font-size:12px"></td></tr><tr><td style="color:#94a3b8">Phase Analytics</td><td>Phase analytics returns detection rates</td><td style="text-align:center;font-size:18px">&#9989;</td><td style="color:#22c55e;font-weight:700">PASS</td><td style="color:#64748b">HTTP {200}</td><td style="color:#cbd5e1">HTTP 200</td><td style="color:#94a3b8;font-size:12px">phases=6</td></tr><tr><td style="color:#94a3b8">Phase Analytics</td><td>Phase search finds missing phases</td><td style="text-align:center;font-size:18px">&#9989;</td><td style="color:#22c55e;font-weight:700">PASS</td><td style="color:#64748b">HTTP {200}</td><td style="color:#cbd5e1">HTTP 200</td><td style="color:#94a3b8;font-size:12px">missing_calls=30</td></tr><tr><td style="color:#94a3b8">Phase Analytics</td><td>Phase search requires company_id</td><td style="text-align:center;font-size:18px">&#9989;</td><td style="color:#22c55e;font-weight:700">PASS</td><td style="color:#64748b">HTTP {400, 422}</td><td style="color:#cbd5e1">HTTP 422</td><td style="color:#94a3b8;font-size:12px"></td></tr><tr><td style="color:#94a3b8">Phase Analytics</td><td>Phase analytics requires auth</td><td style="text-align:center;font-size:18px">&#9989;</td><td style="color:#22c55e;font-weight:700">PASS</td><td style="color:#64748b">HTTP {401}</td><td style="color:#cbd5e1">HTTP 401</td><td style="color:#94a3b8;font-size:12px"></td></tr><tr><td style="color:#94a3b8">Security</td><td>SQL injection in company_id returns 0 calls</td><td style="text-align:center;font-size:18px">&#9989;</td><td style="color:#22c55e;font-weight:700">PASS</td><td style="color:#64748b">HTTP {200, 400, 422}</td><td style="color:#cbd5e1">HTTP 200</td><td style="color:#94a3b8;font-size:12px"></td></tr><tr><td style="color:#94a3b8">Security</td><td>NoSQL injection in company_id returns 0 calls</td><td style="text-align:center;font-size:18px">&#9989;</td><td style="color:#22c55e;font-weight:700">PASS</td><td style="color:#64748b">HTTP {200, 400, 422}</td><td style="color:#cbd5e1">HTTP 200</td><td style="color:#94a3b8;font-size:12px"></td></tr><tr><td style="color:#94a3b8">Security</td><td>XSS in call_id returns 404</td><td style="text-align:center;font-size:18px">&#9989;</td><td style="color:#22c55e;font-weight:700">PASS</td><td style="color:#64748b">HTTP {400, 404}</td><td style="color:#cbd5e1">HTTP 404</td><td style="color:#94a3b8;font-size:12px"></td></tr><tr><td style="color:#94a3b8">Security</td><td>Path traversal in call_id returns 404</td><td style="text-align:center;font-size:18px">&#9989;</td><td style="color:#22c55e;font-weight:700">PASS</td><td style="color:#64748b">HTTP {400, 404, 422}</td><td style="color:#cbd5e1">HTTP 404</td><td style="color:#94a3b8;font-size:12px"></td></tr><tr><td style="color:#94a3b8">Security</td><td>Template injection in company_id</td><td style="text-align:center;font-size:18px">&#9989;</td><td style="color:#22c55e;font-weight:700">PASS</td><td style="color:#64748b">HTTP {200, 400, 422}</td><td style="color:#cbd5e1">HTTP 200</td><td style="color:#94a3b8;font-size:12px"></td></tr><tr><td style="color:#94a3b8">Process</td><td>Process rejects empty body</td><td style="text-align:center;font-size:18px">&#9989;</td><td style="color:#22c55e;font-weight:700">PASS</td><td style="color:#64748b">HTTP {400, 422}</td><td style="color:#cbd5e1">HTTP 422</td><td style="color:#94a3b8;font-size:12px"></td></tr><tr><td style="color:#94a3b8">Process</td><td>Process rejects missing audio_url</td><td style="text-align:center;font-size:18px">&#9989;</td><td style="color:#22c55e;font-weight:700">PASS</td><td style="color:#64748b">HTTP {400, 422}</td><td style="color:#cbd5e1">HTTP 422</td><td style="color:#94a3b8;font-size:12px"></td></tr><tr><td style="color:#94a3b8">Resource Not Found</td><td>Summary for nonexistent call returns 404</td><td style="text-align:center;font-size:18px">&#9989;</td><td style="color:#22c55e;font-weight:700">PASS</td><td style="color:#64748b">HTTP {404}</td><td style="color:#cbd5e1">HTTP 404</td><td style="color:#94a3b8;font-size:12px"></td></tr><tr><td style="color:#94a3b8">Resource Not Found</td><td>Detail for nonexistent call returns 404</td><td style="text-align:center;font-size:18px">&#9989;</td><td style="color:#22c55e;font-weight:700">PASS</td><td style="color:#64748b">HTTP {404}</td><td style="color:#cbd5e1">HTTP 404</td><td style="color:#94a3b8;font-size:12px"></td></tr></tbody>
+        </table>
+    </div>
+    
+  </div>
+
+  <div class="tab-content" id="tab-params">
+    
+    <div class="param-section">
+        <h2>Parameter Validation Across All Calls (0 calls)</h2>
+        <table class="param-table">
+            <thead><tr><th>Field</th><th>Present</th><th>Coverage</th><th>Valid</th><th>Sample Values</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    
+  </div>
+
+  <div class="tab-content" id="tab-phases">
+    <div class="phases-section">
+      <h2>Conversation Phase Detection Rates (Last 90 Days)</h2>
+      <div class="phase-row"><span class="phase-name">Greeting</span><div class="phase-bar-bg"><div class="phase-bar-fill" style="width:100%;background:#22c55e">100%</div></div></div><div class="phase-row"><span class="phase-name">Closing</span><div class="phase-bar-bg"><div class="phase-bar-fill" style="width:87%;background:#22c55e">87%</div></div></div><div class="phase-row"><span class="phase-name">Post Close</span><div class="phase-bar-bg"><div class="phase-bar-fill" style="width:83%;background:#22c55e">83%</div></div></div><div class="phase-row"><span class="phase-name">Problem Discovery</span><div class="phase-bar-bg"><div class="phase-bar-fill" style="width:46%;background:#f97316">46%</div></div></div><div class="phase-row"><span class="phase-name">Objection Handling</span><div class="phase-bar-bg"><div class="phase-bar-fill" style="width:44%;background:#f97316">44%</div></div></div><div class="phase-row"><span class="phase-name">Qualification</span><div class="phase-bar-bg"><div class="phase-bar-fill" style="width:29%;background:#ef4444">29%</div></div></div>
+      <div class="missing-tags">
+        <span style="color:#94a3b8;font-size:12px;margin-right:4px">Commonly missing:</span>
+        <span class="missing-tag">Qualification</span><span class="missing-tag">Objection Handling</span><span class="missing-tag">Problem Discovery</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-calls">
+    <div class="controls">
+      <button class="btn btn-active" onclick="toggleAll(true)">Expand All</button>
+      <button class="btn" onclick="toggleAll(false)">Collapse All</button>
+    </div>
+    <div class="call-card" id="call-0"><div class="call-header" onclick="toggleCard(0)"><div class="call-header-left"><span class="call-number">Call #1</span><span class="call-customer-name">Unknown</span><span class="call-phone">4804535721</span><span class="call-status status-completed">completed</span><span class="call-type-badge">N/A</span><span class="qual-badge qual-other">N/A</span></div><div class="call-header-right"><div class="compliance-mini"><div class="mini-bar-bg"><div class="mini-bar-fill" style="width:0%;background:#ef4444"></div></div><span style="color:#ef4444;font-weight:700">0%</span></div><span class="pv-badge" title="Fields Present: 0/0">0% fields</span><span class="call-date"></span><span class="expand-icon" id="icon-0">&#9660;</span></div></div>
+<div class="call-body" id="body-0" style="display:none">
+<div class="section"><h3>Call Details</h3><div class="detail-grid"><div class="detail-item"><span class="detail-label">Call ID</span><span class="detail-val" style="font-family:monospace;font-size:12px">report_test_848e30ad_06</span></div><div class="detail-item"><span class="detail-label">Company ID</span><span class="detail-val" style="font-family:monospace;font-size:12px">1be5ea90-d3ae-4b03-8b05-f5679cd73bc4</span></div><div class="detail-item"><span class="detail-label">Phone</span><span class="detail-val">4804535721</span></div><div class="detail-item"><span class="detail-label">Date</span><span class="detail-val">None</span></div><div class="detail-item"><span class="detail-label">Status</span><span class="detail-val">completed</span></div><div class="detail-item"><span class="detail-label">Segments</span><span class="detail-val">6</span></div></div></div>
+<div class="section"><h3>Summary</h3><p class="summary-text">No summary available</p></div>
+<div class="section"><h3>SOP Compliance</h3><div class="score-display"><div class="score-circle" style="border-color:#ef4444"><span style="color:#ef4444">0%</span></div><div class="score-details"><div class="stage-bar"><span class="stage-label">Followed (0/0)</span><div class="bar-bg"><div class="bar-fill" style="width:0%;background:#22c55e"></div></div></div><div class="stage-bar"><span class="stage-label">Missed (0/0)</span><div class="bar-bg"><div class="bar-fill" style="width:0%;background:#ef4444"></div></div></div></div></div><div class="sop-grid"></div></div>
+<div class="section"><h3>Transcript (6 segments)</h3><div class="transcript-box"><div class="segment"><span class="speaker speaker-customer_rep">customer_rep</span><span class="seg-text">Thank you for calling Arizona Roofers, this is Bronte, how can I help you?</span></div><div class="segment"><span class="speaker speaker-home_owner">home_owner</span><span class="seg-text">Hello, my name is Cindy, Hannah, and I&#x27;m returning Kate&#x27;s call.</span></div><div class="segment"><span class="speaker speaker-customer_rep">customer_rep</span><span class="seg-text">Okay, she&#x27;s not in quite yet, um, but when she is here, I&#x27;ll let her know that you gave her a call.</span></div><div class="segment"><span class="speaker speaker-home_owner">home_owner</span><span class="seg-text">Okay, thank you.</span></div><div class="segment"><span class="speaker speaker-customer_rep">customer_rep</span><span class="seg-text">Yeah, have a good one.</span></div><div class="segment"><span class="speaker speaker-home_owner">home_owner</span><span class="seg-text">You too.</span></div></div></div>
+</div></div>
+<div class="call-card" id="call-1"><div class="call-header" onclick="toggleCard(1)"><div class="call-header-left"><span class="call-number">Call #2</span><span class="call-customer-name">Unknown</span><span class="call-phone">6198760657</span><span class="call-status status-completed">completed</span><span class="call-type-badge">N/A</span><span class="qual-badge qual-other">N/A</span></div><div class="call-header-right"><div class="compliance-mini"><div class="mini-bar-bg"><div class="mini-bar-fill" style="width:0%;background:#ef4444"></div></div><span style="color:#ef4444;font-weight:700">0%</span></div><span class="pv-badge" title="Fields Present: 0/0">0% fields</span><span class="call-date"></span><span class="expand-icon" id="icon-1">&#9660;</span></div></div>
+<div class="call-body" id="body-1" style="display:none">
+<div class="section"><h3>Call Details</h3><div class="detail-grid"><div class="detail-item"><span class="detail-label">Call ID</span><span class="detail-val" style="font-family:monospace;font-size:12px">report_test_848e30ad_03</span></div><div class="detail-item"><span class="detail-label">Company ID</span><span class="detail-val" style="font-family:monospace;font-size:12px">1be5ea90-d3ae-4b03-8b05-f5679cd73bc4</span></div><div class="detail-item"><span class="detail-label">Phone</span><span class="detail-val">6198760657</span></div><div class="detail-item"><span class="detail-label">Date</span><span class="detail-val">None</span></div><div class="detail-item"><span class="detail-label">Status</span><span class="detail-val">completed</span></div><div class="detail-item"><span class="detail-label">Segments</span><span class="detail-val">5</span></div></div></div>
+<div class="section"><h3>Summary</h3><p class="summary-text">No summary available</p></div>
+<div class="section"><h3>SOP Compliance</h3><div class="score-display"><div class="score-circle" style="border-color:#ef4444"><span style="color:#ef4444">0%</span></div><div class="score-details"><div class="stage-bar"><span class="stage-label">Followed (0/0)</span><div class="bar-bg"><div class="bar-fill" style="width:0%;background:#22c55e"></div></div></div><div class="stage-bar"><span class="stage-label">Missed (0/0)</span><div class="bar-bg"><div class="bar-fill" style="width:0%;background:#ef4444"></div></div></div></div></div><div class="sop-grid"></div></div>
+<div class="section"><h3>Transcript (5 segments)</h3><div class="transcript-box"><div class="segment"><span class="speaker speaker-customer_rep">customer_rep</span><span class="seg-text">This is Nika from Arizona. First, how can I help?</span></div><div class="segment"><span class="speaker speaker-home_owner">home_owner</span><span class="seg-text">Uh, is this the owner or marketing manager?</span></div><div class="segment"><span class="speaker speaker-home_owner">home_owner</span><span class="seg-text">Uh, we know the reason why. Um, I, I wanted to discuss a deal with the company.</span></div><div class="segment"><span class="speaker speaker-customer_rep">customer_rep</span><span class="seg-text">Okay, can you just kindly, uh, send us over an email instead?</span></div><div class="segment"><span class="speaker speaker-home_owner">home_owner</span><span class="seg-text">Okay, um, wait, hold on, hold on.</span></div></div></div>
+</div></div>
+  </div>
+
+</div>
+
+<script>
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+function toggleCard(idx) {
+  const body = document.getElementById("body-" + idx);
+  const icon = document.getElementById("icon-" + idx);
+  if (body.style.display === "none") {
+    body.style.display = "block";
+    icon.innerHTML = "&#9650;";
+  } else {
+    body.style.display = "none";
+    icon.innerHTML = "&#9660;";
+  }
+}
+function toggleAll(show) {
+  document.querySelectorAll(".call-body").forEach(el => el.style.display = show ? "block" : "none");
+  document.querySelectorAll(".expand-icon").forEach(el => el.innerHTML = show ? "&#9650;" : "&#9660;");
+  document.querySelectorAll(".controls .btn").forEach((b, i) => {
+    b.classList.toggle("btn-active", show ? i === 0 : i === 1);
+  });
+}
+</script>
+</body>
+</html>

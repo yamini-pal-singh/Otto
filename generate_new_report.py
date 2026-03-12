@@ -30,18 +30,19 @@ COMPANY_NAME = "Arizona Roofers"
 HEADERS = {"X-API-Key": API_KEY, "Content-Type": "application/json"}
 TIMEOUT = 60
 
-# All 10 audio URLs for testing
+# All audio URLs for testing
+# Add new audio URLs here before running; clear after use to avoid duplicate submissions
 STAGING_AUDIO_URLS = [
-    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/56dc7e30-ffed-4f8d-80eb-b514ffb30a50/4019778374.mp3",
-    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/6e37c8bb-16bc-4e17-867e-ae5e9f57c3b9/4037028977.mp3",
-    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/aa4018dd-47a0-4377-b150-20bcbf3316ff/4036931546.mp3",
-    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/bdc3fc20-ba07-43e5-8e6d-26359cc4633c/4036863062.mp3",
-    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/a5933178-e217-44e0-975e-2cbd1a28bb46/4036836500.mp3",
-    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/8c6b15ee-5675-4e01-8b31-ff3658126353/4049722733.mp3",
-    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/80913c6a-4b74-4d86-ab27-c67ff3654ba7/4043584280.mp3",
-    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/eff6032d-cd45-4ef7-b0d1-60ffad285df1/4036334162.mp3",
-    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/323d1a76-f84c-4a88-9312-c03b4b653cc3/3998154371.mp3",
+    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/43ccc787-7f07-4a13-ac9d-d672d25a809c/4043504735.mp3",
     "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/1fd7bea5-9ace-4e8f-a31f-152ea8269927/4015296617.mp3",
+    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/bc946fa9-1e8a-4f1e-920c-64c4369fe778/4049722733.mp3",
+    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/e2b0dab7-a05b-4448-8c13-fa3753f405ae/4036836500.mp3",
+    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/8c6b15ee-5675-4e01-8b31-ff3658126353/4049722733.mp3",
+    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/6e37c8bb-16bc-4e17-867e-ae5e9f57c3b9/4037028977.mp3",
+    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/56dc7e30-ffed-4f8d-80eb-b514ffb30a50/4050591020.mp3",
+    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/6566e3b9-acac-4b55-aad1-5742464107fa/4058579492.mp3",
+    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/33cc8375-04ee-43a4-8644-bdffdb8d1b1b/4060192187.mp3",
+    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/b9a3deca-d3e1-47ad-a2ad-875e58c0b7dc/4058565425.mp3",
 ]
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -79,6 +80,41 @@ def fetch_json(url, params=None, timeout=TIMEOUT):
     r = requests.get(url, headers=HEADERS, params=params, timeout=timeout)
     r.raise_for_status()
     return r.json()
+
+
+def extract_rep_name_from_transcript(segments):
+    """Extract the actual CSR/rep name from transcript segments.
+    Looks at the first few customer_rep segments for self-introduction patterns
+    like 'This is [Name]', 'My name is [Name]', 'It's [Name]', etc.
+    """
+    import re
+    if not segments:
+        return None
+
+    # Patterns that capture rep self-introduction
+    intro_patterns = [
+        r"(?:this is|my name is|i'm|it's|i am)\s+([A-Z][a-z]{2,15})",
+        r"^(?:hey|hi|hello)[,.]?\s+.*?(?:this is|it's|i'm)\s+([A-Z][a-z]{2,15})",
+    ]
+
+    # Check first 5 customer_rep segments (intro usually happens in first few)
+    rep_segments = [s for s in segments[:15] if s.get("speaker") == "customer_rep"]
+    for seg in rep_segments[:5]:
+        text = seg.get("text", "")
+        for pattern in intro_patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                name = match.group(1).strip().title()
+                # Filter out common false positives
+                false_positives = {
+                    "How", "What", "The", "This", "That", "Well", "Yes", "Yeah",
+                    "Okay", "Sure", "One", "Just", "Here", "There", "Let", "Can",
+                    "Arizona", "Roofers", "Calling", "Thank", "Please",
+                }
+                if name not in false_positives and len(name) >= 3:
+                    return name
+    return None
+
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -239,7 +275,7 @@ def run_all_tests():
 # ─────────────────────────────────────────────────────────────────────────────
 
 # All expected fields from architecture doc
-EXPECTED_SUMMARY_FIELDS = ["summary", "key_points", "action_items", "sentiment_score"]
+EXPECTED_SUMMARY_FIELDS = ["summary", "key_points", "action_items", "next_steps", "pending_actions", "sentiment_score", "confidence_score"]
 EXPECTED_COMPLIANCE_FIELDS = ["score", "stages", "coaching_issues"]
 EXPECTED_QUALIFICATION_FIELDS = [
     "customer_name", "detected_call_type", "is_existing_customer",
@@ -353,6 +389,21 @@ def validate_call_params(summary_data):
                 "present": val is not None,
                 "value": str(val)[:80] if val is not None else "MISSING",
                 "valid": val is not None
+            }
+
+    # Pending Actions (deep check on first item if present)
+    pending_actions = s.get("pending_actions", []) if isinstance(s, dict) else []
+    checks["summary.pending_actions_count"] = {
+        "present": True, "value": str(len(pending_actions)), "valid": True
+    }
+    if pending_actions and isinstance(pending_actions, list) and len(pending_actions) > 0:
+        first_pa = pending_actions[0] if isinstance(pending_actions[0], dict) else {}
+        for pf in ["type", "action_item", "owner", "due_at", "raw_text"]:
+            val = first_pa.get(pf)
+            checks[f"pending_action[0].{pf}"] = {
+                "present": val is not None,
+                "value": str(val)[:80] if val is not None else "MISSING",
+                "valid": val is not None or pf == "due_at"  # due_at can be null
             }
 
     return checks
@@ -474,7 +525,10 @@ def build_call_card(call, summary, detail, idx, validation):
     sum_text = sum_obj.get("summary", "No summary available") if isinstance(sum_obj, dict) else str(sum_obj or "No summary")
     key_points = sum_obj.get("key_points", []) if isinstance(sum_obj, dict) else []
     action_items = sum_obj.get("action_items", []) if isinstance(sum_obj, dict) else []
+    next_steps = sum_obj.get("next_steps", []) if isinstance(sum_obj, dict) else []
+    pending_actions = sum_obj.get("pending_actions", []) if isinstance(sum_obj, dict) else []
     sentiment_score = sum_obj.get("sentiment_score", None) if isinstance(sum_obj, dict) else None
+    summary_confidence = sum_obj.get("confidence_score", None) if isinstance(sum_obj, dict) else None
 
     comp = s.get("compliance", {})
     sop = comp.get("sop_compliance", {})
@@ -515,6 +569,14 @@ def build_call_card(call, summary, detail, idx, validation):
 
     segments = detail.get("segments", []) if detail else []
 
+    # Extract actual CSR rep name from transcript (not from hardcoded metadata)
+    transcript_rep_name = extract_rep_name_from_transcript(segments)
+    # Fallback to metadata only if transcript extraction fails
+    meta = s.get("metadata") or (detail.get("metadata") if detail else None) or {}
+    agent_meta = meta.get("agent", {}) or {}
+    metadata_rep_name = agent_meta.get("name") or meta.get("rep_name", "")
+    csr_agent = transcript_rep_name or metadata_rep_name or "Unknown"
+
     parts = []
 
     # ── Header ──
@@ -539,6 +601,7 @@ def build_call_card(call, summary, detail, idx, validation):
         '<div class="call-header-left">'
         f'<span class="call-number">Call #{idx + 1}</span>'
         f'<span class="call-customer-name">{esc(customer_name)}</span>'
+        f'<span style="color:#60a5fa;font-size:12px;font-weight:600">CSR: {esc(csr_agent)}</span>'
         f'<span class="call-phone">{esc(phone)}</span>'
         f'<span class="call-status status-{status}">{esc(status)}</span>'
         f'<span class="call-type-badge">{esc(call_type.replace("_"," ").title())}</span>'
@@ -569,6 +632,7 @@ def build_call_card(call, summary, detail, idx, validation):
         f'<div class="detail-item"><span class="detail-label">Phone</span><span class="detail-val">{esc(phone)}</span></div>'
         f'<div class="detail-item"><span class="detail-label">Date</span><span class="detail-val">{esc(str(call_date)[:19])}</span></div>'
         f'<div class="detail-item"><span class="detail-label">Status</span><span class="detail-val">{esc(status)}</span></div>'
+        f'<div class="detail-item"><span class="detail-label">CSR Agent</span><span class="detail-val" style="color:#60a5fa;font-weight:600">{esc(csr_agent)}</span></div>'
         f'<div class="detail-item"><span class="detail-label">Segments</span><span class="detail-val">{len(segments)}</span></div>'
         '</div></div>'
     )
@@ -578,6 +642,9 @@ def build_call_card(call, summary, detail, idx, validation):
     ai_html = ""
     if action_items:
         ai_html = "<h4>Action Items</h4>" + "".join(f'<div class="action-item">&#9745; {esc(ai)}</div>' for ai in action_items[:5])
+    ns_html = ""
+    if next_steps:
+        ns_html = "<h4>Next Steps</h4>" + "".join(f'<div class="key-point">&#10148; {esc(ns)}</div>' for ns in next_steps[:5])
     sent_html = ""
     if sentiment_score is not None:
         s_pct = int(float(sentiment_score) * 100)
@@ -587,10 +654,19 @@ def build_call_card(call, summary, detail, idx, validation):
             f'<div class="ci-bar-bg"><div class="ci-bar-fill" style="width:{s_pct}%;background:{s_color}"></div></div>'
             f'<span class="ci-value" style="color:{s_color}">{s_pct}%</span></div>'
         )
+    conf_html = ""
+    if summary_confidence is not None:
+        c_pct = int(float(summary_confidence) * 100)
+        c_color = score_color(float(summary_confidence))
+        conf_html = (
+            f'<div class="ci-row"><span class="ci-label">Summary Confidence</span>'
+            f'<div class="ci-bar-bg"><div class="ci-bar-fill" style="width:{c_pct}%;background:{c_color}"></div></div>'
+            f'<span class="ci-value" style="color:{c_color}">{c_pct}%</span></div>'
+        )
     parts.append(
         f'<div class="section"><h3>Summary</h3>'
         f'<p class="summary-text">{esc(sum_text)}</p>'
-        f'{kp_html}{ai_html}{sent_html}</div>'
+        f'{kp_html}{ai_html}{ns_html}{sent_html}{conf_html}</div>'
     )
 
     # ── Compliance ──
@@ -649,6 +725,44 @@ def build_call_card(call, summary, detail, idx, validation):
                 f'{sug}</div>'
             )
         parts.append(f'<div class="section"><h3>Objections Detected ({len(objections)})</h3><div class="objections-grid">{obj_html}</div></div>')
+
+    # ── Pending Actions ──
+    if pending_actions and isinstance(pending_actions, list):
+        pa_html = ""
+        for pa in pending_actions[:8]:
+            if not isinstance(pa, dict):
+                continue
+            pa_type = esc((pa.get("type") or "").replace("_", " ").title())
+            pa_item = esc(str(pa.get("action_item") or "")[:300])
+            pa_owner = esc(pa.get("owner") or "")
+            pa_due = pa.get("due_at")
+            pa_raw = esc(str(pa.get("raw_text") or "")[:200])
+            pa_conf = pa.get("confidence")
+            pa_contact = esc(pa.get("contact_method") or "")
+
+            due_html = f'<span class="ci-label">Due:</span> {esc(str(pa_due)[:19])}' if pa_due else '<span style="color:#64748b">No due date</span>'
+            conf_html = ""
+            if pa_conf is not None:
+                c_pct = int(float(pa_conf) * 100)
+                conf_html = f' <span style="color:#94a3b8;font-size:11px">(confidence: {c_pct}%)</span>'
+            contact_html = f' <span class="ci-tag ci-new">{pa_contact}</span>' if pa_contact else ""
+
+            raw_html = '<div class="coaching-example"><em>"%s"</em></div>' % pa_raw if pa_raw else ""
+            pa_html += (
+                '<div class="coaching-item" style="border-left-color:#eab308">'
+                f'<div class="coaching-header">'
+                f'<span style="background:#854d0e;color:#fde68a;padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:600">{pa_type}</span>'
+                f' <strong style="color:#f8fafc">{pa_owner}</strong>{contact_html}{conf_html}</div>'
+                f'<div class="coaching-issue">{pa_item}</div>'
+                f'<div style="display:flex;gap:16px;align-items:center;font-size:12px">{due_html}</div>'
+                f'{raw_html}'
+                '</div>'
+            )
+
+        parts.append(
+            f'<div class="section"><h3>Pending Actions ({len(pending_actions)})</h3>'
+            f'{pa_html}</div>'
+        )
 
     # ── Customer Intelligence ──
     if qual:
@@ -1209,6 +1323,11 @@ def main():
         if filter_ids:
             call_map = {c["call_id"]: c for c in calls}
             calls = [call_map[cid] for cid in filter_ids if cid in call_map]
+            # If some call_ids weren't in the listing, create stub entries so they still get fetched
+            found_ids = {c["call_id"] for c in calls}
+            for cid in filter_ids:
+                if cid not in found_ids:
+                    calls.append({"call_id": cid, "status": "completed", "phone_number": "", "call_date": ""})
     except Exception as e:
         print(f"  ERROR fetching calls: {e}")
         calls = []

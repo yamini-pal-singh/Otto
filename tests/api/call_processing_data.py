@@ -15,18 +15,8 @@ STAGING_COMPANY_ID = "1be5ea90-d3ae-4b03-8b05-f5679cd73bc4"
 VALID_COMPANY_ID = STAGING_COMPANY_ID
 
 # Real audio recordings (MP3) for call processing tests
-STAGING_AUDIO_URLS = [
-    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/56dc7e30-ffed-4f8d-80eb-b514ffb30a50/4019778374.mp3",
-    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/6e37c8bb-16bc-4e17-867e-ae5e9f57c3b9/4037028977.mp3",
-    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/aa4018dd-47a0-4377-b150-20bcbf3316ff/4036931546.mp3",
-    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/bdc3fc20-ba07-43e5-8e6d-26359cc4633c/4036863062.mp3",
-    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/a5933178-e217-44e0-975e-2cbd1a28bb46/4036836500.mp3",
-    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/8c6b15ee-5675-4e01-8b31-ff3658126353/4049722733.mp3",
-    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/80913c6a-4b74-4d86-ab27-c67ff3654ba7/4043584280.mp3",
-    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/eff6032d-cd45-4ef7-b0d1-60ffad285df1/4036334162.mp3",
-    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/323d1a76-f84c-4a88-9312-c03b4b653cc3/3998154371.mp3",
-    "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/1fd7bea5-9ace-4e8f-a31f-152ea8269927/4015296617.mp3",
-]
+# TODO: Replace with new audio URLs
+STAGING_AUDIO_URLS = []
 
 # Example call_id for new submissions (flexible: UUID or any string)
 SAMPLE_CALL_ID = "550e8400-e29b-41d4-a716-446655440000"
