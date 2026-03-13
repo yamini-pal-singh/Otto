@@ -24,18 +24,18 @@ TIMEOUT = 60
 EXCEL_PATH = "/Users/unitedwecare/Otto_repos/reports/audio_url_test_results_final.xlsx"
 HTML_OUTPUT = "/Users/unitedwecare/Otto_repos/call_report_csr_10.html"
 
-# The 10 CSR audio URLs and their known call IDs from the Excel
+# The 10 CSR audio URLs and their known call IDs — March 13, 2026 batch
 CSR_CALLS = [
-    {"num": 1,  "audio_url": "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/43ccc787-7f07-4a13-ac9d-d672d25a809c/4043504735.mp3",  "call_id": "audio_test_1_993a0c06"},
-    {"num": 2,  "audio_url": "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/1fd7bea5-9ace-4e8f-a31f-152ea8269927/4015296617.mp3",  "call_id": "audio_test_2_bd5f00a3"},
-    {"num": 3,  "audio_url": "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/bc946fa9-1e8a-4f1e-920c-64c4369fe778/4049722733.mp3",  "call_id": "audio_test_3_4f3b490b"},
-    {"num": 4,  "audio_url": "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/e2b0dab7-a05b-4448-8c13-fa3753f405ae/4036836500.mp3",  "call_id": "audio_test_4_d8091a92"},
-    {"num": 5,  "audio_url": "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/8c6b15ee-5675-4e01-8b31-ff3658126353/4049722733.mp3",  "call_id": None},  # missing from Excel
-    {"num": 6,  "audio_url": "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/6e37c8bb-16bc-4e17-867e-ae5e9f57c3b9/4037028977.mp3",  "call_id": "audio_test_5_350c1b9c"},
-    {"num": 7,  "audio_url": "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/56dc7e30-ffed-4f8d-80eb-b514ffb30a50/4050591020.mp3",  "call_id": "audio_test_6_d72007bf"},
-    {"num": 8,  "audio_url": "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/6566e3b9-acac-4b55-aad1-5742464107fa/4058579492.mp3",  "call_id": "audio_test_7_9f46a512"},
-    {"num": 9,  "audio_url": "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/33cc8375-04ee-43a4-8644-bdffdb8d1b1b/4060192187.mp3",  "call_id": "audio_test_8_e4341b87"},
-    {"num": 10, "audio_url": "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/b9a3deca-d3e1-47ad-a2ad-875e58c0b7dc/4058565425.mp3",  "call_id": "audio_test_9_15bc465b"},
+    {"num": 1,  "audio_url": "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/bd24a254-fe4e-48ef-9c3e-3c3f3adfd68c/4082148782.mp3",  "call_id": "scenario_test_1_88148c4c"},
+    {"num": 2,  "audio_url": "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/00273c23-da2c-4e1b-b49c-4ff85d4a766a/4082112377.mp3",  "call_id": "scenario_test_2_2e229983"},
+    {"num": 3,  "audio_url": "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/c0183543-60e4-434f-a247-89ec9ef8e1e3/4081871096.mp3",  "call_id": "scenario_test_3_cc5d0fb9"},
+    {"num": 4,  "audio_url": "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/eb359c0a-02e2-4e94-b018-b3585c8a4024/4081765241.mp3",  "call_id": "scenario_test_4_334fff68"},
+    {"num": 5,  "audio_url": "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/4da88a74-f129-481d-92d4-626c5a728835/4081742162.mp3",  "call_id": "scenario_test_5_8b5c1e22"},
+    {"num": 6,  "audio_url": "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/c6c4fff3-72d5-42d5-9cb4-16b8272e3d3b/4079556188.mp3",  "call_id": "scenario_test_6_c383236d"},
+    {"num": 7,  "audio_url": "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/ddccb9c0-fce8-4eb5-81bd-5e738cb95979/4078581674.mp3",  "call_id": "scenario_test_7_b228486b"},
+    {"num": 8,  "audio_url": "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/add722b1-c29f-4615-b389-4d29773d5958/st_309419607.mp3",  "call_id": "scenario_test_8_a99fa915"},
+    {"num": 9,  "audio_url": "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/df6c19b0-5d39-457b-8053-4dd83f4407cf/4076546354.mp3",  "call_id": "scenario_test_9_e37ecbc8"},
+    {"num": 10, "audio_url": "https://ottoaudio.s3.ap-southeast-2.amazonaws.com/recordings/6dd70da4-9d39-4496-871e-827af1429e29/4077402764.mp3",  "call_id": "scenario_test_10_fcee5ce4"},
 ]
 
 
@@ -177,9 +177,6 @@ def extract_row_data(call_entry, summary, detail):
     obj_count = len(objections)
     obj_text = safe_join([o.get("objection_text","") for o in objections], " | ")
 
-    # Scope
-    scope = s.get("scope", {}) or {}
-
     return {
         "call_received": qual.get("call_date") or detail.get("call_date", "") if detail else "",
         "csr_agent": rep_name or "",
@@ -244,10 +241,10 @@ def extract_row_data(call_entry, summary, detail):
         "preferred_time": qual.get("preferred_time_window") or "",
         "processing_status": s.get("processing_status") or "completed",
         "sop_version": s.get("sop_version") or "",
-        "scope_classification": scope.get("classification") or "",
-        "scope_confidence": scope.get("confidence") or "",
-        "scope_reason": scope.get("reason") or "",
-        "scope_signals": safe_join(scope.get("signals") or []),
+        "scope_classification": qual.get("scope_classification") or "",
+        "scope_confidence": qual.get("scope_confidence") or "",
+        "scope_reason": qual.get("scope_reason") or "",
+        "scope_signals": safe_join(qual.get("scope_signals") or []),
         "sentiment": sum_obj.get("sentiment_score"),
         "service_addr_raw": qual.get("service_address_raw") or "",
         "service_not_offered_reason": qual.get("service_not_offered_reason") or "",
